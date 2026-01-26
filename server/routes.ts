@@ -112,33 +112,73 @@ async function getProductDetails(productId: string): Promise<{
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.5",
+        "Referer": "https://www.google.com/",
+        "Pragma": "no-cache",
+        "Cache-Control": "no-cache"
       },
       timeout: 15000
     });
 
     const $ = cheerio.load(data);
-    
-    // Improved title extraction matching python logic
-    let title = $('.product-title-text').text().trim() || 
-                $('h1.product-title-text').text().trim() ||
-                $('meta[property="og:title"]').attr('content') || 
-                $('title').text().trim();
-    
-    // Improved image extraction matching python logic
-    let imageUrl = $('.magnifier-image').attr('src') || 
-                   $('.magnifier-image').attr('data-src') ||
-                   $('img.magnifier-image').attr('src') ||
-                   $('img.magnifier-image').attr('data-src') ||
-                   $('meta[property="og:image"]').attr('content');
-    
+
+    // Advanced Extraction matching pattern from Offres-365 logic
+    let title = "";
+    let imageUrl = "";
+
+    // 1. Try JSON extraction from scripts (most reliable)
+    const scripts = $('script');
+    scripts.each((_, element) => {
+      const content = $(element).html() || "";
+      if (content.includes('window.runParams')) {
+        try {
+          const match = content.match(/window\.runParams\s*=\s*(\{.*?\});/);
+          if (match) {
+            const params = JSON.parse(match[1]);
+            const data = params.data || params;
+            title = data.productDetailModule?.title || data.titleModule?.subject || data.subject;
+            imageUrl = data.imageModule?.imagePathList?.[0] || data.productDetailModule?.imagePathList?.[0];
+          }
+        } catch (e) {}
+      }
+    });
+
+    // 2. Fallback to Meta tags
+    if (!title) {
+      title = $('meta[property="og:title"]').attr('content') || 
+              $('meta[name="twitter:title"]').attr('content') ||
+              $('.product-title-text').first().text().trim() ||
+              $('h1').first().text().trim() ||
+              $('title').text().trim();
+    }
+
     if (!imageUrl) {
-      // Try finding the first large image in scripts if any, but sticking to python-like BeautifulSoup logic
+      imageUrl = $('meta[property="og:image"]').attr('content') ||
+                 $('meta[name="twitter:image"]').attr('content') ||
+                 $('.magnifier-image').attr('src') ||
+                 $('.magnifier-image').attr('data-src');
+    }
+
+    // 3. Last resort: first large image
+    if (!imageUrl) {
       imageUrl = $('img[src*="kf/"]').first().attr('src');
     }
 
-    if (imageUrl && imageUrl.startsWith('//')) imageUrl = `https:${imageUrl}`;
+    // Clean up title
+    if (title) {
+      title = title.replace(/&amp;/g, '&')
+                   .replace(/&quot;/g, '"')
+                   .replace(/&lt;/g, '<')
+                   .replace(/&gt;/g, '>')
+                   .substring(0, 250)
+                   .trim();
+    }
 
-    if (title) title = title.substring(0, 250);
+    // Clean up Image URL
+    if (imageUrl) {
+      if (imageUrl.startsWith('//')) imageUrl = `https:${imageUrl}`;
+      // Remove thumbnail resizing if present
+      imageUrl = imageUrl.replace(/_\d+x\d+\.(jpg|png|webp).*/, '');
+    }
 
     return {
       title: title || "AliExpress Product",

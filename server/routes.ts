@@ -25,6 +25,11 @@ interface ProductResponse {
   originalPrice: string;
   discount: string;
   storeName: string;
+  evaluateRate: string;
+  shopUrl: string;
+  categoryName: string;
+  commissionRate: string;
+  orders: string;
   searchedAt: string;
   offers: OfferItem[];
 }
@@ -32,6 +37,15 @@ interface ProductResponse {
 const ALIEXPRESS_API_URL = "https://api-sg.aliexpress.com/sync";
 
 function extractProductId(text: string): string | null {
+  const urlPattern = /https?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/g;
+  const urls = text.match(urlPattern);
+  
+  const targetUrl = urls?.find(url => 
+    url.includes("aliexpress.com") || 
+    url.includes("alix.live") || 
+    url.includes("s.click.aliexpress.com")
+  ) || text;
+
   const patterns = [
     /[?&]productIds=(\d+)/,
     /[?&]productId=(\d+)/,
@@ -45,7 +59,7 @@ function extractProductId(text: string): string | null {
   ];
 
   for (const pattern of patterns) {
-    const match = text.match(pattern);
+    const match = targetUrl.match(pattern);
     if (match) {
       return match[1];
     }
@@ -54,14 +68,18 @@ function extractProductId(text: string): string | null {
 }
 
 async function resolveRedirects(url: string): Promise<string> {
+  const urlPattern = /https?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;
+  const match = url.match(urlPattern);
+  const cleanUrl = match ? match[0] : url;
+
   try {
-    const response = await fetch(url, {
+    const response = await fetch(cleanUrl, {
       method: "HEAD",
       redirect: "follow",
     });
     return response.url;
   } catch {
-    return url;
+    return cleanUrl;
   }
 }
 
@@ -146,6 +164,11 @@ async function getProductDetailsFromApi(
   originalPrice: string;
   discount: string;
   storeName: string;
+  evaluateRate: string;
+  shopUrl: string;
+  categoryName: string;
+  commissionRate: string;
+  orders: string;
   imageUrl: string | null;
 }> {
   try {
@@ -203,19 +226,32 @@ async function getProductDetailsFromApi(
         );
         const sale = parseFloat(salePrice.toString().replace(/[^0-9.]/g, ""));
         if (original > 0 && sale > 0) {
-          discount = `${(((original - sale) / original) * 100).toFixed(0)}%`;
+          discount = `${(((original - sale) / original) * 100).toFixed(1)}%`;
         }
       } catch {
         discount = "";
       }
     }
 
+    let shopUrl = product.shop_url || "N/A";
+    if (shopUrl.includes('/store/')) {
+        try {
+            const storeId = shopUrl.split('/store/')[1].split('/')[0].split('?')[0];
+            shopUrl = `https://m.aliexpress.com/store/${storeId}?shopId=${storeId}`;
+        } catch (e) {}
+    }
+
     return {
       title: product.product_title || "Unknown Product",
-      price: `$${salePrice} USD`,
-      originalPrice: `$${originalPrice} USD`,
+      price: `${salePrice} USD`,
+      originalPrice: `${originalPrice} USD`,
       discount: discount || "0%",
       storeName: product.shop_name || "Unknown Store",
+      evaluateRate: product.evaluate_rate || "N/A",
+      shopUrl: shopUrl,
+      categoryName: product.first_level_category_name || "N/A",
+      commissionRate: product.commission_rate || "N/A",
+      orders: product.lastest_volume || "N/A",
       imageUrl: null,
     };
   } catch (error) {
@@ -383,6 +419,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalPrice: "N/A",
         discount: "0%",
         storeName: "Unknown Store",
+        evaluateRate: "N/A",
+        shopUrl: "N/A",
+        categoryName: "N/A",
+        commissionRate: "N/A",
+        orders: "N/A",
         imageUrl: null as string | null,
       };
 
@@ -399,7 +440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const scrapedData = await getProductDetails(productId);
-      if (!productData.title || productData.title === "Unknown Product") {
+      if (!productData.title || productData.title === "Unknown Product" || productData.title === "Unable to extract title") {
         productData.title = scrapedData.title;
       }
       if (!productData.imageUrl) {
@@ -422,6 +463,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalPrice: productData.originalPrice,
         discount: productData.discount,
         storeName: productData.storeName,
+        evaluateRate: productData.evaluateRate,
+        shopUrl: productData.shopUrl,
+        categoryName: productData.categoryName,
+        commissionRate: productData.commissionRate,
+        orders: productData.orders,
         searchedAt: new Date().toISOString(),
         offers,
       };

@@ -70,7 +70,14 @@ export default function SettingsScreen() {
     key: K,
     value: AppSettings[K]
   ) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+    setSettings((prev) => {
+      const newSettings = { ...prev, [key]: value };
+      // Save immediately for theme and language to reflect changes
+      if (key === "theme" || key === "language") {
+        saveSettings(newSettings).catch(console.error);
+      }
+      return newSettings;
+    });
   };
 
   const ThemeOption = ({

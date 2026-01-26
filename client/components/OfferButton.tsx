@@ -76,6 +76,7 @@ export function OfferButton({
       <Pressable
         style={({ pressed }) => [
           styles.mainButton,
+          { backgroundColor: success ? `${AppColors.primary}10` : 'transparent' },
           pressed && styles.pressed,
           !success && styles.disabled,
         ]}
@@ -84,19 +85,27 @@ export function OfferButton({
         testID={`offer-button-${name}`}
       >
         <View style={styles.offerIcon}>
-          <Feather
-            name={success ? "tag" : "x-circle"}
-            size={18}
-            color={success ? AppColors.primary : AppColors.error}
-          />
+          <View style={[styles.iconBadge, { backgroundColor: success ? AppColors.primary : AppColors.error }]}>
+            <Feather
+              name={success ? "tag" : "x-circle"}
+              size={14}
+              color="#FFFFFF"
+            />
+          </View>
         </View>
-        <ThemedText
-          type="small"
-          style={[styles.offerName, !success && styles.disabledText]}
-          numberOfLines={2}
-        >
-          {name}
-        </ThemedText>
+        <View style={styles.offerTextContainer}>
+          <ThemedText
+            type="body"
+            style={[styles.offerName, !success && styles.disabledText, { fontWeight: '600' }]}
+            numberOfLines={1}
+          >
+            {name}
+          </ThemedText>
+          <ThemedText type="small" style={{ color: theme.textSecondary }} numberOfLines={1}>
+            {success ? "Click to view offer" : "Offer unavailable"}
+          </ThemedText>
+        </View>
+        <Feather name="chevron-right" size={20} color={theme.textSecondary} style={styles.chevron} />
       </Pressable>
 
       <View style={styles.actions}>
@@ -113,9 +122,10 @@ export function OfferButton({
           <Feather
             name="copy"
             size={18}
-            color={success ? theme.textSecondary : theme.border}
+            color={success ? AppColors.primary : theme.border}
           />
         </Pressable>
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
         <Pressable
           style={({ pressed }) => [
             styles.actionButton,
@@ -129,7 +139,7 @@ export function OfferButton({
           <Feather
             name="share-2"
             size={18}
-            color={success ? theme.textSecondary : theme.border}
+            color={success ? AppColors.primary : theme.border}
           />
         </Pressable>
       </View>
@@ -139,34 +149,71 @@ export function OfferButton({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "column",
     borderWidth: 1,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.md,
     overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+      }
+    }),
   },
   mainButton: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
   },
   offerIcon: {
-    marginRight: Spacing.sm,
+    marginRight: Spacing.md,
+  },
+  iconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  offerTextContainer: {
+    flex: 1,
+    justifyContent: "center",
   },
   offerName: {
-    flex: 1,
+    fontSize: 16,
+    marginBottom: 2,
+  },
+  chevron: {
+    marginLeft: Spacing.sm,
   },
   actions: {
     flexDirection: "row",
     alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.05)",
+    height: 48,
   },
   actionButton: {
-    padding: Spacing.md,
+    flex: 1,
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    height: "100%",
+  },
+  divider: {
+    width: 1,
+    height: "60%",
+    opacity: 0.3,
   },
   pressed: {
     opacity: 0.7,

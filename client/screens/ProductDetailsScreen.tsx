@@ -237,12 +237,58 @@ Store: ${product.storeName}`;
 
             <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-            <View style={styles.storeRow}>
-              <Feather name="shopping-bag" size={16} color={theme.textSecondary} />
-              <ThemedText type="small" style={{ marginLeft: Spacing.sm }}>
-                {product.storeName}
-              </ThemedText>
+            <View style={styles.infoGrid}>
+              <View style={styles.infoItem}>
+                <Feather name="shopping-bag" size={16} color={theme.textSecondary} />
+                <ThemedText type="small" style={styles.infoText}>
+                  {product.storeName}
+                </ThemedText>
+              </View>
+              {product.evaluateRate && (
+                <View style={styles.infoItem}>
+                  <Feather name="star" size={16} color="#FFD700" />
+                  <ThemedText type="small" style={styles.infoText}>
+                    {product.evaluateRate}
+                  </ThemedText>
+                </View>
+              )}
+              {product.orders && (
+                <View style={styles.infoItem}>
+                  <Feather name="trending-up" size={16} color={AppColors.primary} />
+                  <ThemedText type="small" style={styles.infoText}>
+                    {product.orders} orders
+                  </ThemedText>
+                </View>
+              )}
+              {product.categoryName && (
+                <View style={styles.infoItem}>
+                  <Feather name="list" size={16} color={theme.textSecondary} />
+                  <ThemedText type="small" style={styles.infoText}>
+                    {product.categoryName}
+                  </ThemedText>
+                </View>
+              )}
+              {product.commissionRate && (
+                <View style={styles.infoItem}>
+                  <Feather name="percent" size={16} color={AppColors.success || "#4CAF50"} />
+                  <ThemedText type="small" style={styles.infoText}>
+                    Comm: {product.commissionRate}
+                  </ThemedText>
+                </View>
+              )}
             </View>
+            
+            {product.shopUrl && product.shopUrl !== "N/A" && (
+              <Pressable 
+                onPress={() => Linking.openURL(product.shopUrl!)}
+                style={styles.shopButton}
+              >
+                <ThemedText type="small" style={{ color: AppColors.primary, fontWeight: '600' }}>
+                  Visit Store
+                </ThemedText>
+                <Feather name="external-link" size={14} color={AppColors.primary} />
+              </Pressable>
+            )}
           </View>
 
           <View style={styles.copyActions}>
@@ -427,6 +473,25 @@ const styles = StyleSheet.create({
   storeRow: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  infoGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.md,
+  },
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    minWidth: "45%",
+  },
+  infoText: {
+    marginLeft: Spacing.xs,
+  },
+  shopButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: Spacing.md,
+    gap: Spacing.xs,
   },
   copyActions: {
     flexDirection: "row",

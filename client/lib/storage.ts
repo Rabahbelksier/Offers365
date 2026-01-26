@@ -15,6 +15,11 @@ export interface ProductItem {
   originalPrice: string;
   discount: string;
   storeName: string;
+  evaluateRate?: string;
+  shopUrl?: string;
+  categoryName?: string;
+  commissionRate?: string;
+  orders?: string;
   searchedAt: string;
   offers: OfferItem[];
 }

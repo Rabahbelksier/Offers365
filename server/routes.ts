@@ -46,7 +46,8 @@ function extractProductId(text: string): string | null {
     url.includes("s.click.aliexpress.com")
   ) || text;
 
-    const patterns = [
+  // Patterns for specific product ID extraction from URLs
+  const urlPatterns = [
     /[?&]productIds?=(\d+)/,
     /\/item\/(\d+)\.(?:html|htm)/,
     /\/item\/(\d+)(?:\?|$)/,
@@ -55,15 +56,21 @@ function extractProductId(text: string): string | null {
     /\/p\/[^/]+\/index\.html[?&]productIds?=(\d+)/,
     /\/ssr\/.*?[?&]productIds?=(\d+)/,
     /\/[a-z0-9]+\.html\?.*?productId(?:s)?=(\d+)/,
-    /\d{10,}/,
   ];
 
-  for (const pattern of patterns) {
+  for (const pattern of urlPatterns) {
     const match = targetUrl.match(pattern);
     if (match) {
       return match[1];
     }
   }
+
+  // If no URL pattern matches, search for a long numeric string in the entire text
+  const numericMatch = text.match(/\b\d{10,20}\b/);
+  if (numericMatch) {
+    return numericMatch[0];
+  }
+
   return null;
 }
 
@@ -133,18 +140,26 @@ async function getProductDetails(productId: string): Promise<{
       imageUrl = imageMatch[1];
     }
 
-    if (!imageUrl) {
+    if (!imageUrl || imageUrl.includes("placeholder")) {
       const imagePathMatch = html.match(/"imagePath":"([^"]+)"/);
       if (imagePathMatch) {
         imageUrl = imagePathMatch[1];
       }
     }
 
-    if (!imageUrl) {
+    if (!imageUrl || imageUrl.includes("placeholder")) {
       const imgMatch = html.match(/"image":"([^"]+)"/);
       if (imgMatch) {
         imageUrl = imgMatch[1];
       }
+    }
+
+    if (!imageUrl || imageUrl.includes("placeholder")) {
+        const $ = cheerio.load(html);
+        imageUrl = $(".magnifier-image").attr("src") || 
+                  $(".main-img").attr("src") || 
+                  $("img[itemprop='image']").attr("src") || 
+                  null;
     }
 
     if (imageUrl && !imageUrl.startsWith("http")) {

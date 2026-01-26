@@ -191,6 +191,47 @@ async function getProductDetails(productId: string): Promise<{
   }
 }
 
+async function getProductSkuDetails(
+  productId: string,
+  appKey: string,
+  appSecret: string,
+  trackingId: string
+): Promise<{
+  productScore: string;
+  shippingFee: string;
+}> {
+  try {
+    const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
+    const params: Record<string, string> = {
+      method: "aliexpress.affiliate.product.sku.detail.get",
+      app_key: appKey,
+      sign_method: "sha256",
+      timestamp,
+      format: "json",
+      v: "2.0",
+      product_id: productId,
+    };
+
+    params.sign = generateApiSignature(params, appSecret);
+
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetch(`${ALIEXPRESS_API_URL}?${queryString}`);
+    const data = await response.json();
+
+    const result = data.aliexpress_affiliate_product_sku_detail_get_response?.result?.result;
+    const aeItemInfo = result?.ae_item_info;
+    const aeItemSkuInfo = result?.ae_item_sku_info?.[0];
+
+    return {
+      productScore: aeItemInfo?.product_score || "N/A",
+      shippingFee: aeItemSkuInfo?.shipping_fees ? `${aeItemSkuInfo.shipping_fees} USD` : "Free Shipping",
+    };
+  } catch (error) {
+    console.error("Error fetching SKU details:", error);
+    return { productScore: "N/A", shippingFee: "Free Shipping" };
+  }
+}
+
 async function getProductDetailsFromApi(
   productId: string,
   appKey: string,
@@ -223,6 +264,7 @@ async function getProductDetailsFromApi(
       target_currency: "USD",
       target_language: "EN",
       tracking_id: trackingId,
+      country: "DZ",
     };
 
     params.sign = generateApiSignature(params, appSecret);
@@ -283,13 +325,8 @@ async function getProductDetailsFromApi(
     // Extraction of image from API
     const imageUrl = product.product_main_image_url || product.first_image_url || null;
 
-    // Evaluation rate is usually in evaluate_rate
-    const evaluateRate = product.evaluate_rate || "N/A";
-
-    // Shipping fee handling (mocking if not directly in productdetail, 
-    // but typically some shipping info might be in different API calls, 
-    // for now we check if it exists in the response)
-    const shippingFee = product.shipping_fee || "Free Shipping";
+    // Get additional info from SKU detail API
+    const skuDetails = await getProductSkuDetails(productId, appKey, appSecret, trackingId);
 
     return {
       title: product.product_title || "Unknown Product",
@@ -297,13 +334,13 @@ async function getProductDetailsFromApi(
       originalPrice: `${originalPrice} USD`,
       discount: discount || "0%",
       storeName: product.shop_name || "Unknown Store",
-      evaluateRate: evaluateRate,
+      evaluateRate: skuDetails.productScore || product.evaluate_rate || "N/A",
       shopUrl: shopUrl,
       categoryName: product.first_level_category_name || "N/A",
       commissionRate: product.commission_rate || "N/A",
       orders: product.lastest_volume || "N/A",
       imageUrl: imageUrl,
-      shippingFee: shippingFee,
+      shippingFee: skuDetails.shippingFee,
     };
   } catch (error) {
     console.error("Error fetching product from API:", error);

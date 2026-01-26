@@ -260,6 +260,14 @@ Store: ${product.storeName}`;
                   </ThemedText>
                 </View>
               )}
+              {product.shippingFee && (
+                <View style={styles.infoItem}>
+                  <Feather name="truck" size={16} color={AppColors.accent} />
+                  <ThemedText type="small" style={styles.infoText}>
+                    {product.shippingFee}
+                  </ThemedText>
+                </View>
+              )}
               {product.categoryName && (
                 <View style={styles.infoItem}>
                   <Feather name="list" size={16} color={theme.textSecondary} />

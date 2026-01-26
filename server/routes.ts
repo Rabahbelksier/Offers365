@@ -46,16 +46,16 @@ function extractProductId(text: string): string | null {
     url.includes("s.click.aliexpress.com")
   ) || text;
 
-  const patterns = [
-    /[?&]productIds=(\d+)/,
-    /[?&]productId=(\d+)/,
+    const patterns = [
+    /[?&]productIds?=(\d+)/,
     /\/item\/(\d+)\.(?:html|htm)/,
     /\/item\/(\d+)(?:\?|$)/,
     /\/product\/(\d+)/,
     /\/i\/(\d+)/,
-    /\/p\/[^/]+\/index\.html[?&]productIds=(\d+)/,
-    /\/ssr\/.*?[?&]productIds=(\d+)/,
+    /\/p\/[^/]+\/index\.html[?&]productIds?=(\d+)/,
+    /\/ssr\/.*?[?&]productIds?=(\d+)/,
     /\/[a-z0-9]+\.html\?.*?productId(?:s)?=(\d+)/,
+    /\d{10,}/,
   ];
 
   for (const pattern of patterns) {
@@ -128,19 +128,27 @@ async function getProductDetails(productId: string): Promise<{
       title = $("title").text() || null;
     }
 
-    const imageMatch = html.match(/"imagePath":"([^"]+)"/);
+    const imageMatch = html.match(/<meta property="og:image" content="([^"]+)"/);
     if (imageMatch) {
       imageUrl = imageMatch[1];
-      if (!imageUrl.startsWith("http")) {
-        imageUrl = `https:${imageUrl}`;
+    }
+
+    if (!imageUrl) {
+      const imagePathMatch = html.match(/"imagePath":"([^"]+)"/);
+      if (imagePathMatch) {
+        imageUrl = imagePathMatch[1];
       }
     }
 
     if (!imageUrl) {
-      const ogImageMatch = html.match(/og:image" content="([^"]+)"/);
-      if (ogImageMatch) {
-        imageUrl = ogImageMatch[1];
+      const imgMatch = html.match(/"image":"([^"]+)"/);
+      if (imgMatch) {
+        imageUrl = imgMatch[1];
       }
+    }
+
+    if (imageUrl && !imageUrl.startsWith("http")) {
+      imageUrl = `https:${imageUrl}`;
     }
 
     return {
@@ -367,6 +375,7 @@ async function generateAllOffers(
     );
 
     if (!affiliateLink) {
+      console.log(`Primary link failed for ${name}, trying secondary...`);
       affiliateLink = await generateAffiliateLink(
         offersSecondary[i],
         appKey,

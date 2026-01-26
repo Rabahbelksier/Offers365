@@ -141,6 +141,19 @@ async function getProductDetails(productId: string): Promise<{
     }
 
     if (!imageUrl || imageUrl.includes("placeholder")) {
+        // Try to extract from the script tag containing window.runParams
+        const runParamsMatch = html.match(/window\.runParams\s*=\s*({.*?});/);
+        if (runParamsMatch) {
+            try {
+                const runParams = JSON.parse(runParamsMatch[1]);
+                imageUrl = runParams?.data?.imageModule?.imagePathList?.[0] || 
+                           runParams?.data?.productDetailModule?.imagePathList?.[0] ||
+                           null;
+            } catch (e) {}
+        }
+    }
+
+    if (!imageUrl || imageUrl.includes("placeholder")) {
       const imagePathMatch = html.match(/"imagePath":"([^"]+)"/);
       if (imagePathMatch) {
         imageUrl = imagePathMatch[1];
@@ -152,14 +165,6 @@ async function getProductDetails(productId: string): Promise<{
       if (imgMatch) {
         imageUrl = imgMatch[1];
       }
-    }
-
-    if (!imageUrl || imageUrl.includes("placeholder")) {
-        const $ = cheerio.load(html);
-        imageUrl = $(".magnifier-image").attr("src") || 
-                  $(".main-img").attr("src") || 
-                  $("img[itemprop='image']").attr("src") || 
-                  null;
     }
 
     if (imageUrl && !imageUrl.startsWith("http")) {
@@ -372,27 +377,58 @@ async function generateAllOffers(
     },
   ];
 
-  const offersSecondary = offersPrimary.map(
-    (offer) =>
-      `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(offer.url)}`
-  );
+  const offersSecondary = [
+    {
+        name: "Coin Page Offer",
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://m.aliexpress.com/p/coin-index/index.html?_immersiveMode=true&productIds=${productId}`)}`
+    },
+    {
+        name: "Direct Product Link",
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=620`)}`
+    },
+    {
+        name: "Super Deals",
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=562`)}`
+    },
+    {
+        name: "Big Save Discount",
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=680`)}`
+    },
+    {
+        name: "Limited Discount",
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=561`)}`
+    },
+    {
+        name: "Potential Discount",
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=504`)}`
+    },
+    {
+        name: "Bundle Direct",
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=570`)}`
+    },
+    {
+        name: "Bundle Deals Page",
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/ssr/300000512/BundleDeals2?&pha_manifest=ssr&productIds=${productId}`)}`
+    }
+  ];
 
   const results: OfferItem[] = [];
 
   for (let i = 0; i < offersPrimary.length; i++) {
-    const { name, url } = offersPrimary[i];
+    const primaryOffer = offersPrimary[i];
+    const secondaryOffer = offersSecondary[i];
 
     let affiliateLink = await generateAffiliateLink(
-      url,
+      primaryOffer.url,
       appKey,
       appSecret,
       trackingId
     );
 
     if (!affiliateLink) {
-      console.log(`Primary link failed for ${name}, trying secondary...`);
+      console.log(`Primary link failed for ${primaryOffer.name}, trying secondary...`);
       affiliateLink = await generateAffiliateLink(
-        offersSecondary[i],
+        secondaryOffer.url,
         appKey,
         appSecret,
         trackingId
@@ -400,8 +436,8 @@ async function generateAllOffers(
     }
 
     results.push({
-      name,
-      link: affiliateLink || url,
+      name: primaryOffer.name,
+      link: affiliateLink || primaryOffer.url,
       success: !!affiliateLink,
     });
   }

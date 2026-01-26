@@ -12,7 +12,7 @@ import { Feather } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, Fonts } from "@/constants/theme";
+import { Spacing, BorderRadius, Fonts, AppColors } from "@/constants/theme";
 
 export type ErrorFallbackProps = {
   error: Error;
@@ -59,11 +59,11 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
 
       <View style={styles.content}>
         <ThemedText type="h1" style={styles.title}>
-          Something went wrong
+          Oops! Something went wrong
         </ThemedText>
 
         <ThemedText type="body" style={styles.message}>
-          Please reload the app to continue.
+          Offers 365 encountered an unexpected issue. Please reload to continue.
         </ThemedText>
 
         <Pressable
@@ -71,7 +71,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           style={({ pressed }) => [
             styles.button,
             {
-              backgroundColor: theme.link,
+              backgroundColor: AppColors.primary,
               opacity: pressed ? 0.9 : 1,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             },

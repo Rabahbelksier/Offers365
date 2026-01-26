@@ -244,15 +244,15 @@ Store: ${product.storeName}`;
                   {product.storeName}
                 </ThemedText>
               </View>
-              {product.evaluateRate && (
+              {product.evaluateRate && product.evaluateRate !== "N/A" && (
                 <View style={styles.infoItem}>
                   <Feather name="star" size={16} color="#FFD700" />
                   <ThemedText type="small" style={styles.infoText}>
-                    {product.evaluateRate}
+                    {product.evaluateRate} Rating
                   </ThemedText>
                 </View>
               )}
-              {product.orders && (
+              {product.orders && product.orders !== "N/A" && (
                 <View style={styles.infoItem}>
                   <Feather name="trending-up" size={16} color={AppColors.primary} />
                   <ThemedText type="small" style={styles.infoText}>
@@ -264,7 +264,9 @@ Store: ${product.storeName}`;
                 <View style={styles.infoItem}>
                   <Feather name="truck" size={16} color={AppColors.accent} />
                   <ThemedText type="small" style={styles.infoText}>
-                    {product.shipping_fees}
+                    {product.shipping_fees === "Free Shipping" || product.shipping_fees === "0" 
+                      ? "Free Shipping" 
+                      : `Shipping: ${product.shipping_fees}`}
                   </ThemedText>
                 </View>
               )}

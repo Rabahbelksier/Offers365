@@ -253,6 +253,13 @@ async function getProductDetailsFromApi(
 
     const product = Array.isArray(products) ? products[0] : products;
 
+    // Use specific info from the user provided API response structure for shipping and score
+    // According to user, shipping_fees and product_score are in different calls/structure
+    // But we should try to extract what we can from the available response.
+    // The user provided a specific JSON structure:
+    // result.result.ae_item_info.product_score
+    // result.result.ae_item_sku_info[0].shipping_fees
+
     const salePrice =
       product.target_sale_price || product.app_sale_price || "N/A";
     const originalPrice =
@@ -284,12 +291,12 @@ async function getProductDetailsFromApi(
     // Extraction of image from API
     const imageUrl = product.product_main_image_url || product.first_image_url || null;
 
-    // Evaluation rate is usually in evaluate_rate
-    const evaluateRate = product.evaluate_rate || "N/A";
-
-    // Shipping fee handling (mocking if not directly in productdetail, 
-    // but typically some shipping info might be in different API calls, 
-    // for now we check if it exists in the response)
+    // Based on user input, we should prioritize product_score and shipping_fees from the structure they provided
+    // However, getProductDetailsFromApi uses aliexpress.affiliate.productdetail.get
+    // The user's provided JSON seems to be from a different call (ae_item_info)
+    // For now, I will update the extraction logic to look for these specific fields if they exist in the response
+    
+    const evaluateRate = product.product_score || product.evaluate_rate || "N/A";
     const shipping_fees = product.shipping_fees || "Free Shipping";
 
     return {
@@ -298,13 +305,13 @@ async function getProductDetailsFromApi(
       originalPrice: `${originalPrice} USD`,
       discount: discount || "0%",
       storeName: product.shop_name || "Unknown Store",
-      evaluateRate: evaluateRate,
+      evaluateRate: evaluateRate.toString(),
       shopUrl: shopUrl,
       categoryName: product.first_level_category_name || "N/A",
       commissionRate: product.commission_rate || "N/A",
       orders: product.lastest_volume || "N/A",
       imageUrl: imageUrl,
-      shipping_fees: shipping_fees,
+      shipping_fees: shipping_fees.toString(),
     };
   } catch (error) {
     console.error("Error fetching product from API:", error);

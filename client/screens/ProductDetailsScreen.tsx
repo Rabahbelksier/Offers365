@@ -260,11 +260,11 @@ Store: ${product.storeName}`;
                   </ThemedText>
                 </View>
               )}
-              {product.shippingFee && (
+              {product.shipping_fees && (
                 <View style={styles.infoItem}>
                   <Feather name="truck" size={16} color={AppColors.accent} />
                   <ThemedText type="small" style={styles.infoText}>
-                    {product.shippingFee}
+                    {product.shipping_fees}
                   </ThemedText>
                 </View>
               )}

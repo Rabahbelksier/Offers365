@@ -20,7 +20,7 @@ export interface ProductItem {
   categoryName?: string;
   commissionRate?: string;
   orders?: string;
-  shippingFee?: string;
+  shipping_fees?: string;
   searchedAt: string;
   offers: OfferItem[];
 }
@@ -150,7 +150,7 @@ export function formatProductMessage(
     .replace("{originalPrice}", product.originalPrice)
     .replace("{discount}", product.discount)
     .replace("{storeName}", product.storeName)
-    .replace("{shippingFee}", product.shippingFee || "Free Shipping")
+    .replace("{shipping_fees}", product.shipping_fees || "Free Shipping")
     .replace("{evaluateRate}", product.evaluateRate || "N/A")
     .replace("{orders}", product.orders || "N/A")
     .replace("{offers}", offersText);

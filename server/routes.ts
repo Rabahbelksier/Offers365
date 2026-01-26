@@ -145,8 +145,8 @@ async function getProductDetails(productId: string): Promise<{
 
     // 2. Fallback to Meta tags
     if (!title) {
-      const ogTitle = $('meta[property="og:title"]').attr('content') || "";
-      const twitterTitle = $('meta[name="twitter:title"]').attr('content') || "";
+      const ogTitle = ($('meta[property="og:title"]').attr('content') as string) || "";
+      const twitterTitle = ($('meta[name="twitter:title"]').attr('content') as string) || "";
       title = ogTitle || 
               twitterTitle ||
               $('.product-title-text').first().text().trim() ||
@@ -155,12 +155,12 @@ async function getProductDetails(productId: string): Promise<{
     }
 
     if (!imageUrl) {
-      const ogImage = $('meta[property="og:image"]').attr('content') || "";
-      const twitterImage = $('meta[name="twitter:image"]').attr('content') || "";
+      const ogImage = ($('meta[property="og:image"]').attr('content') as string) || "";
+      const twitterImage = ($('meta[name="twitter:image"]').attr('content') as string) || "";
       imageUrl = ogImage ||
                  twitterImage ||
                  $('.magnifier-image').attr('src') ||
-                 $('.magnifier-image').attr('data-src');
+                 $('.magnifier-image').attr('data-src') || "";
     }
 
     // 3. Last resort: first large image

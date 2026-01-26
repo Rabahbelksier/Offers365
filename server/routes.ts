@@ -31,6 +31,7 @@ interface ProductResponse {
   categoryName: string;
   commissionRate: string;
   orders: string;
+  shippingFee: string;
   searchedAt: string;
   offers: OfferItem[];
 }
@@ -207,6 +208,7 @@ async function getProductDetailsFromApi(
   commissionRate: string;
   orders: string;
   imageUrl: string | null;
+  shippingFee: string;
 }> {
   try {
     const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
@@ -278,18 +280,30 @@ async function getProductDetailsFromApi(
         } catch (e) {}
     }
 
+    // Extraction of image from API
+    const imageUrl = product.product_main_image_url || product.first_image_url || null;
+
+    // Evaluation rate is usually in evaluate_rate
+    const evaluateRate = product.evaluate_rate || "N/A";
+
+    // Shipping fee handling (mocking if not directly in productdetail, 
+    // but typically some shipping info might be in different API calls, 
+    // for now we check if it exists in the response)
+    const shippingFee = product.shipping_fee || "Free Shipping";
+
     return {
       title: product.product_title || "Unknown Product",
       price: `${salePrice} USD`,
       originalPrice: `${originalPrice} USD`,
       discount: discount || "0%",
       storeName: product.shop_name || "Unknown Store",
-      evaluateRate: product.evaluate_rate || "N/A",
+      evaluateRate: evaluateRate,
       shopUrl: shopUrl,
       categoryName: product.first_level_category_name || "N/A",
       commissionRate: product.commission_rate || "N/A",
       orders: product.lastest_volume || "N/A",
-      imageUrl: null,
+      imageUrl: imageUrl,
+      shippingFee: shippingFee,
     };
   } catch (error) {
     console.error("Error fetching product from API:", error);
@@ -494,6 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         commissionRate: "N/A",
         orders: "N/A",
         imageUrl: null as string | null,
+        shippingFee: "Free Shipping",
       };
 
       try {
@@ -537,6 +552,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         categoryName: productData.categoryName,
         commissionRate: productData.commissionRate,
         orders: productData.orders,
+        shippingFee: productData.shippingFee,
         searchedAt: new Date().toISOString(),
         offers,
       };

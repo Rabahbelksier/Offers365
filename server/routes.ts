@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "node:http";
 import * as cheerio from "cheerio";
+import axios from "axios";
 import * as crypto from "crypto";
 
 interface ProductRequest {
@@ -106,78 +107,46 @@ async function getProductDetails(productId: string): Promise<{
 }> {
   try {
     const url = `https://www.aliexpress.com/item/${productId}.html`;
-    const response = await fetch(url, {
+    const { data } = await axios.get(url, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.5",
       },
+      timeout: 15000
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status}`);
+    const $ = cheerio.load(data);
+    
+    // Improved title extraction matching python logic
+    let title = $('.product-title-text').text().trim() || 
+                $('h1.product-title-text').text().trim() ||
+                $('meta[property="og:title"]').attr('content') || 
+                $('title').text().trim();
+    
+    // Improved image extraction matching python logic
+    let imageUrl = $('.magnifier-image').attr('src') || 
+                   $('.magnifier-image').attr('data-src') ||
+                   $('img.magnifier-image').attr('src') ||
+                   $('img.magnifier-image').attr('data-src') ||
+                   $('meta[property="og:image"]').attr('content');
+    
+    if (!imageUrl) {
+      // Try finding the first large image in scripts if any, but sticking to python-like BeautifulSoup logic
+      imageUrl = $('img[src*="kf/"]').first().attr('src');
     }
 
-    const html = await response.text();
+    if (imageUrl && imageUrl.startsWith('//')) imageUrl = `https:${imageUrl}`;
 
-    let title: string | null = null;
-    let imageUrl: string | null = null;
-
-    const subjectMatch = html.match(/"subject":"([^"]+)"/);
-    if (subjectMatch) {
-      title = subjectMatch[1];
-    }
-
-    if (!title) {
-      const $ = cheerio.load(html);
-      title = $("title").text() || null;
-    }
-
-    const imageMatch = html.match(/<meta property="og:image" content="([^"]+)"/);
-    if (imageMatch) {
-      imageUrl = imageMatch[1];
-    }
-
-    if (!imageUrl || imageUrl.includes("placeholder")) {
-        // Try to extract from the script tag containing window.runParams
-        const runParamsMatch = html.match(/window\.runParams\s*=\s*({.*?});/);
-        if (runParamsMatch) {
-            try {
-                const runParams = JSON.parse(runParamsMatch[1]);
-                imageUrl = runParams?.data?.imageModule?.imagePathList?.[0] || 
-                           runParams?.data?.productDetailModule?.imagePathList?.[0] ||
-                           null;
-            } catch (e) {}
-        }
-    }
-
-    if (!imageUrl || imageUrl.includes("placeholder")) {
-      const imagePathMatch = html.match(/"imagePath":"([^"]+)"/);
-      if (imagePathMatch) {
-        imageUrl = imagePathMatch[1];
-      }
-    }
-
-    if (!imageUrl || imageUrl.includes("placeholder")) {
-      const imgMatch = html.match(/"image":"([^"]+)"/);
-      if (imgMatch) {
-        imageUrl = imgMatch[1];
-      }
-    }
-
-    if (imageUrl && !imageUrl.startsWith("http")) {
-      imageUrl = `https:${imageUrl}`;
-    }
+    if (title) title = title.substring(0, 250);
 
     return {
-      title: title ? title.slice(0, 255).trim() : "Unable to extract title",
-      imageUrl,
+      title: title || "AliExpress Product",
+      imageUrl: imageUrl || null
     };
   } catch (error) {
-    console.error("Error extracting product details:", error);
-    return { title: "Unable to extract title", imageUrl: null };
+    console.error("Scraping Error:", error);
+    return { title: "AliExpress Product", imageUrl: null };
   }
 }
 

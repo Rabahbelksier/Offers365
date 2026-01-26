@@ -380,36 +380,36 @@ async function generateAllOffers(
   const offersSecondary = [
     {
         name: "Coin Page Offer",
-        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://m.aliexpress.com/p/coin-index/index.html?_immersiveMode=true&productIds=${productId}`)}`
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=https://m.aliexpress.com/p/coin-index/index.html?_immersiveMode=true&productIds=${productId}`
     },
     {
         name: "Direct Product Link",
-        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=620`)}`
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=https://www.aliexpress.com/item/${productId}.html?sourceType=620`
     },
     {
         name: "Super Deals",
-        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=562`)}`
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=https://www.aliexpress.com/item/${productId}.html?sourceType=562`
     },
     {
         name: "Big Save Discount",
-        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=680`)}`
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=https://www.aliexpress.com/item/${productId}.html?sourceType=680`
     },
     {
         name: "Limited Discount",
-        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=561`)}`
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=https://www.aliexpress.com/item/${productId}.html?sourceType=561`
     },
     {
         name: "Potential Discount",
-        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=504`)}`
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=https://www.aliexpress.com/item/${productId}.html?sourceType=504`
     },
     {
         name: "Bundle Direct",
-        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/item/${productId}.html?sourceType=570`)}`
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=https://www.aliexpress.com/item/${productId}.html?sourceType=570`
     },
     {
         name: "Bundle Deals Page",
-        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=${encodeURIComponent(`https://www.aliexpress.com/ssr/300000512/BundleDeals2?&pha_manifest=ssr&productIds=${productId}`)}`
-    }
+        url: `https://star.aliexpress.com/share/share.htm?redirectUrl=https://www.aliexpress.com/ssr/300000512/BundleDeals2?&pha_manifest=ssr&productIds=${productId}`
+    },
   ];
 
   const results: OfferItem[] = [];

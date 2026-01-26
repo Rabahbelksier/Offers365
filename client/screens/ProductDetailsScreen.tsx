@@ -45,7 +45,7 @@ export default function ProductDetailsScreen() {
     message: string,
     type: "success" | "error" | "info" = "success"
   ) => {
-    setToast({ visible: true, message, type: type === "success" ? "success" : "success" }); // Temporary hack to fix type error if Toast only accepts success, or fix Toast component
+    setToast({ visible: true, message, type: "success" }); 
   };
 
   const hideToast = () => {
@@ -124,7 +124,7 @@ Store: ${product.storeName}`;
         return;
       }
 
-      const fileUri = FileSystem.documentDirectory + `product_${product.productId}.jpg`;
+      const fileUri = (FileSystem as any).documentDirectory + `product_${product.productId}.jpg`;
       const download = await FileSystem.downloadAsync(product.imageUrl, fileUri);
       await MediaLibrary.saveToLibraryAsync(download.uri);
       await triggerHaptic();

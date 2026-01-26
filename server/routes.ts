@@ -145,16 +145,20 @@ async function getProductDetails(productId: string): Promise<{
 
     // 2. Fallback to Meta tags
     if (!title) {
-      title = $('meta[property="og:title"]').attr('content') || 
-              $('meta[name="twitter:title"]').attr('content') ||
+      const ogTitle = $('meta[property="og:title"]').attr('content');
+      const twitterTitle = $('meta[name="twitter:title"]').attr('content');
+      title = ogTitle || 
+              twitterTitle ||
               $('.product-title-text').first().text().trim() ||
               $('h1').first().text().trim() ||
               $('title').text().trim();
     }
 
     if (!imageUrl) {
-      imageUrl = $('meta[property="og:image"]').attr('content') ||
-                 $('meta[name="twitter:image"]').attr('content') ||
+      const ogImage = $('meta[property="og:image"]').attr('content');
+      const twitterImage = $('meta[name="twitter:image"]').attr('content');
+      imageUrl = ogImage ||
+                 twitterImage ||
                  $('.magnifier-image').attr('src') ||
                  $('.magnifier-image').attr('data-src');
     }

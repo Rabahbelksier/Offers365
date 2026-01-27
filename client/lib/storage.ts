@@ -4,6 +4,9 @@ const STORAGE_KEYS = {
   RECENT_PRODUCTS: "offers365_recent_products",
   SETTINGS: "offers365_settings",
   MESSAGE_TEMPLATE: "offers365_message_template",
+  SHARE_TEMPLATE: "offers365_share_template",
+  DETAILS_TEMPLATE: "offers365_details_template",
+  COPY_ALL_TEMPLATE: "offers365_copy_all_template",
 };
 
 export interface ProductItem {
@@ -48,6 +51,35 @@ export const DEFAULT_SETTINGS: AppSettings = {
 };
 
 export const DEFAULT_MESSAGE_TEMPLATE = `{title}
+
+Current Price: {price}
+Original Price: {originalPrice}
+Discount: {discount}
+
+Store: {storeName}
+
+Offers:
+{offers}`;
+
+export const DEFAULT_SHARE_TEMPLATE = `{title}
+
+Current Price: {price}
+Original Price: {originalPrice}
+Discount: {discount}
+
+Store: {storeName}
+
+Offers:
+{offers}`;
+
+export const DEFAULT_DETAILS_TEMPLATE = `{title}
+
+Price: {price}
+Original: {originalPrice}
+Discount: {discount}
+Store: {storeName}`;
+
+export const DEFAULT_COPY_ALL_TEMPLATE = `{title}
 
 Current Price: {price}
 Original Price: {originalPrice}
@@ -132,6 +164,57 @@ export async function saveMessageTemplate(template: string): Promise<void> {
     await AsyncStorage.setItem(STORAGE_KEYS.MESSAGE_TEMPLATE, template);
   } catch (error) {
     console.error("Failed to save template:", error);
+  }
+}
+
+export async function getShareTemplate(): Promise<string> {
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.SHARE_TEMPLATE);
+    return data || DEFAULT_SHARE_TEMPLATE;
+  } catch {
+    return DEFAULT_SHARE_TEMPLATE;
+  }
+}
+
+export async function saveShareTemplate(template: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.SHARE_TEMPLATE, template);
+  } catch (error) {
+    console.error("Failed to save share template:", error);
+  }
+}
+
+export async function getDetailsTemplate(): Promise<string> {
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.DETAILS_TEMPLATE);
+    return data || DEFAULT_DETAILS_TEMPLATE;
+  } catch {
+    return DEFAULT_DETAILS_TEMPLATE;
+  }
+}
+
+export async function saveDetailsTemplate(template: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.DETAILS_TEMPLATE, template);
+  } catch (error) {
+    console.error("Failed to save details template:", error);
+  }
+}
+
+export async function getCopyAllTemplate(): Promise<string> {
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.COPY_ALL_TEMPLATE);
+    return data || DEFAULT_COPY_ALL_TEMPLATE;
+  } catch {
+    return DEFAULT_COPY_ALL_TEMPLATE;
+  }
+}
+
+export async function saveCopyAllTemplate(template: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.COPY_ALL_TEMPLATE, template);
+  } catch (error) {
+    console.error("Failed to save copy all template:", error);
   }
 }
 

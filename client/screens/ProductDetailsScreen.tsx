@@ -9,7 +9,8 @@ import {
   Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRoute, RouteProp } from "@react-navigation/native";
+import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
@@ -22,19 +23,25 @@ import { ThemedView } from "@/components/ThemedView";
 import { OfferButton } from "@/components/OfferButton";
 import { SocialLinks } from "@/components/SocialLinks";
 import { Toast } from "@/components/Toast";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { useTheme } from "@/hooks/useTheme";
 import { AppColors, Spacing, BorderRadius } from "@/constants/theme";
-import { formatProductMessage, getMessageTemplate, ProductItem } from "@/lib/storage";
+import { formatProductMessage, getShareTemplate, getDetailsTemplate, getCopyAllTemplate, getSettings, saveProduct, ProductItem } from "@/lib/storage";
+import { getApiUrl } from "@/lib/query-client";
 import type { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 type ProductDetailsRouteProp = RouteProp<RootStackParamList, "ProductDetails">;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function ProductDetailsScreen() {
   const insets = useSafeAreaInsets();
   const route = useRoute<ProductDetailsRouteProp>();
+  const navigation = useNavigation<NavigationProp>();
   const { theme } = useTheme();
-  const { product } = route.params;
+  const { product: initialProduct } = route.params;
 
+  const [product, setProduct] = useState<ProductItem>(initialProduct);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [toast, setToast] = useState({
     visible: false,
     message: "",
@@ -60,7 +67,7 @@ export default function ProductDetailsScreen() {
 
   const copyAll = async () => {
     try {
-      const template = await getMessageTemplate();
+      const template = await getCopyAllTemplate();
       const text = formatProductMessage(product, template);
       await Clipboard.setStringAsync(text);
       await triggerHaptic();
@@ -72,12 +79,8 @@ export default function ProductDetailsScreen() {
 
   const copyDetails = async () => {
     try {
-      const text = `${product.title}
-
-Price: ${product.price}
-Original: ${product.originalPrice}
-Discount: ${product.discount}
-Store: ${product.storeName}`;
+      const template = await getDetailsTemplate();
+      const text = formatProductMessage(product, template);
       await Clipboard.setStringAsync(text);
       await triggerHaptic();
       showToast("Details copied!", "success");
@@ -98,7 +101,7 @@ Store: ${product.storeName}`;
 
   const shareProduct = async () => {
     try {
-      const template = await getMessageTemplate();
+      const template = await getShareTemplate();
       const text = formatProductMessage(product, template);
       await Share.share({ message: text });
     } catch (error) {
@@ -135,12 +138,50 @@ Store: ${product.storeName}`;
     }
   };
 
-  const otherOffersUrl = `https://www.aliexpress.com/item/${product.productId}.html`;
-  const openOtherOffers = async () => {
+  const refreshOffer = async () => {
+    setIsRefreshing(true);
     try {
-      await Linking.openURL(otherOffersUrl);
+      const settings = await getSettings();
+      if (!settings.appKey || !settings.appSecret || !settings.trackingId) {
+        showToast("Please configure API keys in Settings first", "error");
+        setIsRefreshing(false);
+        return;
+      }
+
+      const productUrl = `https://www.aliexpress.com/item/${product.productId}.html`;
+      const apiUrl = getApiUrl();
+      const response = await fetch(new URL("/api/product", apiUrl).href, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: productUrl,
+          appKey: settings.appKey,
+          appSecret: settings.appSecret,
+          trackingId: settings.trackingId,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to refresh offer");
+      }
+
+      const updatedProduct: ProductItem = await response.json();
+      await saveProduct(updatedProduct);
+      setProduct(updatedProduct);
+
+      if (Platform.OS !== "web") {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      showToast("Offer refreshed successfully!", "success");
     } catch (error) {
-      console.error("Failed to open link:", error);
+      console.error("Failed to refresh offer:", error);
+      showToast(
+        error instanceof Error ? error.message : "Failed to refresh offer",
+        "error"
+      );
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -152,6 +193,7 @@ Store: ${product.storeName}`;
         type={toast.type}
         onHide={hideToast}
       />
+      <LoadingOverlay visible={isRefreshing} message="Refreshing offer..." />
 
       <ScrollView
         style={styles.scrollView}
@@ -376,15 +418,15 @@ Store: ${product.storeName}`;
 
             <Pressable
               style={({ pressed }) => [
-                styles.otherOffersButton,
+                styles.refreshOfferButton,
                 pressed && styles.pressed,
               ]}
-              onPress={openOtherOffers}
-              testID="button-other-offers"
+              onPress={refreshOffer}
+              testID="button-refresh-offer"
             >
-              <Feather name="external-link" size={18} color="#FFFFFF" />
-              <ThemedText type="body" style={styles.otherOffersText}>
-                Other Offers
+              <Feather name="refresh-cw" size={18} color="#FFFFFF" />
+              <ThemedText type="body" style={styles.refreshOfferText}>
+                Refresh Offer
               </ThemedText>
             </Pressable>
           </View>
@@ -531,18 +573,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginLeft: Spacing.sm,
   },
-  otherOffersButton: {
+  refreshOfferButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: AppColors.accent,
+    backgroundColor: AppColors.secondary,
     paddingVertical: Spacing.lg,
     borderRadius: BorderRadius.lg,
     marginTop: Spacing.md,
     gap: Spacing.sm,
   },
-  otherOffersText: {
-    color: "#1A1A1A",
+  refreshOfferText: {
+    color: "#FFFFFF",
     fontWeight: "600",
   },
 });

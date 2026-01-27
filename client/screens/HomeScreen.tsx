@@ -165,10 +165,10 @@ export default function HomeScreen() {
 
     return (
       <View style={styles.listFooter}>
-        <View style={styles.footerButtons}>
+        <View style={styles.footerButtonsCenter}>
           <Pressable
             style={({ pressed }) => [
-              styles.footerButton,
+              styles.clearHistoryButton,
               { borderColor: theme.border },
               pressed && styles.buttonPressed,
             ]}
@@ -179,22 +179,63 @@ export default function HomeScreen() {
               Clear History
             </ThemedText>
           </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.footerButton,
-              { borderColor: theme.border },
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={handleRefresh}
-          >
-            <Feather name="refresh-cw" size={18} color={AppColors.primary} />
-            <ThemedText type="small" style={{ color: AppColors.primary }}>
-              Refresh
-            </ThemedText>
-          </Pressable>
         </View>
       </View>
     );
+  };
+
+  const handleSaveToList = async () => {
+    if (!linkInput.trim()) {
+      showToast("Please enter an AliExpress product link", "error");
+      return;
+    }
+
+    const settings = await getSettings();
+    if (!settings.appKey || !settings.appSecret || !settings.trackingId) {
+      showToast("Please configure API keys in Settings first", "error");
+      return;
+    }
+
+    setIsLoading(true);
+    setLoadingMessage("Saving to list...");
+
+    try {
+      const apiUrl = getApiUrl();
+      const response = await fetch(new URL("/api/product", apiUrl).href, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: linkInput.trim(),
+          appKey: settings.appKey,
+          appSecret: settings.appSecret,
+          trackingId: settings.trackingId,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to fetch product");
+      }
+
+      const product: ProductItem = await response.json();
+      await saveProduct(product);
+      await loadRecentProducts();
+
+      if (Platform.OS !== "web") {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+
+      setLinkInput("");
+      showToast("Product saved to list!", "success");
+    } catch (error) {
+      console.error("Failed to save product:", error);
+      showToast(
+        error instanceof Error ? error.message : "Failed to save product",
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -251,6 +292,21 @@ export default function HomeScreen() {
               <Feather name="search" size={20} color="#FFFFFF" />
               <ThemedText type="body" style={styles.buttonText}>
                 Get Offers
+              </ThemedText>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.saveToListButton,
+                { borderColor: AppColors.primary },
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={handleSaveToList}
+              testID="button-save-to-list"
+            >
+              <Feather name="plus-circle" size={20} color={AppColors.primary} />
+              <ThemedText type="body" style={styles.saveToListText}>
+                Save to List
               </ThemedText>
             </Pressable>
 
@@ -359,19 +415,32 @@ const styles = StyleSheet.create({
   listFooter: {
     marginTop: Spacing.lg,
   },
-  footerButtons: {
-    flexDirection: "row",
-    gap: Spacing.md,
+  footerButtonsCenter: {
+    alignItems: "center",
   },
-  footerButton: {
-    flex: 1,
+  clearHistoryButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     gap: Spacing.sm,
+  },
+  saveToListButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+    borderWidth: 2,
+  },
+  saveToListText: {
+    color: AppColors.primary,
+    fontWeight: "600",
   },
   footer: {
     borderTopWidth: 1,

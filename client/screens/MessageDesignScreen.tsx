@@ -18,9 +18,15 @@ import { Toast } from "@/components/Toast";
 import { useTheme } from "@/hooks/useTheme";
 import { AppColors, Spacing, BorderRadius } from "@/constants/theme";
 import {
-  getMessageTemplate,
-  saveMessageTemplate,
-  DEFAULT_MESSAGE_TEMPLATE,
+  getShareTemplate,
+  saveShareTemplate,
+  getDetailsTemplate,
+  saveDetailsTemplate,
+  getCopyAllTemplate,
+  saveCopyAllTemplate,
+  DEFAULT_SHARE_TEMPLATE,
+  DEFAULT_DETAILS_TEMPLATE,
+  DEFAULT_COPY_ALL_TEMPLATE,
 } from "@/lib/storage";
 
 const AVAILABLE_KEYWORDS = [
@@ -32,11 +38,22 @@ const AVAILABLE_KEYWORDS = [
   { key: "{offers}", description: "All affiliate links" },
 ];
 
+type TemplateType = "share" | "details" | "copyAll";
+
+const TEMPLATE_TABS: { key: TemplateType; label: string; icon: string }[] = [
+  { key: "share", label: "Share", icon: "share-2" },
+  { key: "details", label: "Details", icon: "file-text" },
+  { key: "copyAll", label: "Copy All", icon: "copy" },
+];
+
 export default function MessageDesignScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
 
-  const [template, setTemplate] = useState(DEFAULT_MESSAGE_TEMPLATE);
+  const [activeTab, setActiveTab] = useState<TemplateType>("share");
+  const [shareTemplate, setShareTemplate] = useState(DEFAULT_SHARE_TEMPLATE);
+  const [detailsTemplate, setDetailsTemplate] = useState(DEFAULT_DETAILS_TEMPLATE);
+  const [copyAllTemplate, setCopyAllTemplate] = useState(DEFAULT_COPY_ALL_TEMPLATE);
   const [toast, setToast] = useState({
     visible: false,
     message: "",
@@ -44,12 +61,18 @@ export default function MessageDesignScreen() {
   });
 
   useEffect(() => {
-    loadTemplate();
+    loadTemplates();
   }, []);
 
-  const loadTemplate = async () => {
-    const savedTemplate = await getMessageTemplate();
-    setTemplate(savedTemplate);
+  const loadTemplates = async () => {
+    const [share, details, copyAll] = await Promise.all([
+      getShareTemplate(),
+      getDetailsTemplate(),
+      getCopyAllTemplate(),
+    ]);
+    setShareTemplate(share);
+    setDetailsTemplate(details);
+    setCopyAllTemplate(copyAll);
   };
 
   const showToast = (
@@ -63,9 +86,55 @@ export default function MessageDesignScreen() {
     setToast((prev) => ({ ...prev, visible: false }));
   };
 
+  const getCurrentTemplate = () => {
+    switch (activeTab) {
+      case "share":
+        return shareTemplate;
+      case "details":
+        return detailsTemplate;
+      case "copyAll":
+        return copyAllTemplate;
+    }
+  };
+
+  const setCurrentTemplate = (value: string) => {
+    switch (activeTab) {
+      case "share":
+        setShareTemplate(value);
+        break;
+      case "details":
+        setDetailsTemplate(value);
+        break;
+      case "copyAll":
+        setCopyAllTemplate(value);
+        break;
+    }
+  };
+
+  const getDefaultTemplate = () => {
+    switch (activeTab) {
+      case "share":
+        return DEFAULT_SHARE_TEMPLATE;
+      case "details":
+        return DEFAULT_DETAILS_TEMPLATE;
+      case "copyAll":
+        return DEFAULT_COPY_ALL_TEMPLATE;
+    }
+  };
+
   const handleSave = async () => {
     try {
-      await saveMessageTemplate(template);
+      switch (activeTab) {
+        case "share":
+          await saveShareTemplate(shareTemplate);
+          break;
+        case "details":
+          await saveDetailsTemplate(detailsTemplate);
+          break;
+        case "copyAll":
+          await saveCopyAllTemplate(copyAllTemplate);
+          break;
+      }
       if (Platform.OS !== "web") {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
@@ -76,16 +145,16 @@ export default function MessageDesignScreen() {
   };
 
   const handleReset = () => {
-    setTemplate(DEFAULT_MESSAGE_TEMPLATE);
+    setCurrentTemplate(getDefaultTemplate());
     showToast("Template reset to default", "info");
   };
 
   const insertKeyword = (keyword: string) => {
-    setTemplate((prev) => prev + keyword);
+    setCurrentTemplate(getCurrentTemplate() + keyword);
   };
 
   const getPreview = () => {
-    return template
+    return getCurrentTemplate()
       .replace("{title}", "Sample Product Title - High Quality Item")
       .replace("{price}", "$19.99 USD")
       .replace("{originalPrice}", "$39.99 USD")
@@ -116,6 +185,54 @@ export default function MessageDesignScreen() {
       >
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
+            <Feather name="layers" size={18} color={AppColors.primary} />
+            <ThemedText type="h4" style={styles.sectionTitle}>
+              Select Template
+            </ThemedText>
+          </View>
+          <ThemedText
+            type="small"
+            style={[styles.sectionDescription, { color: theme.textSecondary }]}
+          >
+            Choose which button message to customize
+          </ThemedText>
+
+          <View style={styles.tabsContainer}>
+            {TEMPLATE_TABS.map((tab) => (
+              <Pressable
+                key={tab.key}
+                style={[
+                  styles.tab,
+                  {
+                    backgroundColor:
+                      activeTab === tab.key
+                        ? AppColors.primary
+                        : theme.backgroundSecondary,
+                  },
+                ]}
+                onPress={() => setActiveTab(tab.key)}
+              >
+                <Feather
+                  name={tab.icon as any}
+                  size={16}
+                  color={activeTab === tab.key ? "#FFFFFF" : theme.text}
+                />
+                <ThemedText
+                  type="small"
+                  style={{
+                    color: activeTab === tab.key ? "#FFFFFF" : theme.text,
+                    fontWeight: activeTab === tab.key ? "600" : "400",
+                  }}
+                >
+                  {tab.label}
+                </ThemedText>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
             <Feather name="edit-3" size={18} color={AppColors.primary} />
             <ThemedText type="h4" style={styles.sectionTitle}>
               Template Editor
@@ -125,7 +242,7 @@ export default function MessageDesignScreen() {
             type="small"
             style={[styles.sectionDescription, { color: theme.textSecondary }]}
           >
-            Customize how your product messages are formatted when copied or shared
+            Customize how your product messages are formatted
           </ThemedText>
 
           <View
@@ -136,8 +253,8 @@ export default function MessageDesignScreen() {
           >
             <TextInput
               style={[styles.editor, { color: theme.text }]}
-              value={template}
-              onChangeText={setTemplate}
+              value={getCurrentTemplate()}
+              onChangeText={setCurrentTemplate}
               multiline
               numberOfLines={12}
               textAlignVertical="top"
@@ -278,6 +395,19 @@ const styles = StyleSheet.create({
   },
   sectionDescription: {
     marginBottom: Spacing.md,
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.xs,
   },
   editorContainer: {
     borderWidth: 1,

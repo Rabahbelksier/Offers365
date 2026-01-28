@@ -480,7 +480,7 @@ async function generateAllOffers(
     }
 
     results.push({
-      key: primaryOffer.key,
+      key: primaryOffer.key || "",
       name: primaryOffer.name,
       link: affiliateLink || primaryOffer.url,
       success: !!affiliateLink,
@@ -545,10 +545,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("API failed, falling back to scraping");
       }
 
-      const scrapedData = await getProductDetails(productId);
-      if (!productData.title || productData.title === "Unknown Product" || productData.title === "Unable to extract title") {
-        productData.title = scrapedData.title;
-      }
+    const scrapedData = await getProductDetails(productId);
+    if (!productData.title || productData.title === "Unknown Product" || productData.title === "AliExpress Product") {
+      productData.title = scrapedData.title;
+    }
       if (!productData.imageUrl) {
         productData.imageUrl = scrapedData.imageUrl;
       }

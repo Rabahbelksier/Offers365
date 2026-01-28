@@ -12,6 +12,7 @@ interface ProductRequest {
 }
 
 interface OfferItem {
+  key: string;
   name: string;
   link: string;
   success: boolean;
@@ -379,34 +380,42 @@ async function generateAllOffers(
 ): Promise<OfferItem[]> {
   const offersPrimary = [
     {
+      key: "coin_link",
       name: "Coin Page Offer",
       url: `https://m.aliexpress.com/p/coin-index/index.html?_immersiveMode=true&productIds=${productId}`,
     },
     {
+      key: "direct_link",
       name: "Direct Product Link",
       url: `https://www.aliexpress.com/item/${productId}.html?sourceType=620`,
     },
     {
+      key: "super_link",
       name: "Super Deals",
       url: `https://www.aliexpress.com/item/${productId}.html?sourceType=562`,
     },
     {
+      key: "big_save_link",
       name: "Big Save Discount",
       url: `https://www.aliexpress.com/item/${productId}.html?sourceType=680`,
     },
     {
+      key: "limited_link",
       name: "Limited Discount",
       url: `https://www.aliexpress.com/item/${productId}.html?sourceType=561`,
     },
     {
+      key: "potential_link",
       name: "Potential Discount",
       url: `https://www.aliexpress.com/item/${productId}.html?sourceType=504`,
     },
     {
+      key: "bundle_direct_link",
       name: "Bundle Direct",
       url: `https://www.aliexpress.com/item/${productId}.html?sourceType=570`,
     },
     {
+      key: "bundle_page_link",
       name: "Bundle Deals Page",
       url: `https://www.aliexpress.com/ssr/300000512/BundleDeals2?&pha_manifest=ssr&productIds=${productId}`,
     },
@@ -471,6 +480,7 @@ async function generateAllOffers(
     }
 
     results.push({
+      key: primaryOffer.key,
       name: primaryOffer.name,
       link: affiliateLink || primaryOffer.url,
       success: !!affiliateLink,

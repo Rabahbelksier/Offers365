@@ -29,6 +29,7 @@ export interface ProductItem {
 }
 
 export interface OfferItem {
+  key?: string;
   name: string;
   link: string;
   success: boolean;
@@ -227,7 +228,7 @@ export function formatProductMessage(
     .map((o) => `${o.name}:\n${o.link}`)
     .join("\n\n");
 
-  return template
+  let formatted = template
     .replace("{title}", product.title)
     .replace("{price}", product.price)
     .replace("{originalPrice}", product.originalPrice)
@@ -237,4 +238,22 @@ export function formatProductMessage(
     .replace("{evaluateRate}", product.evaluateRate || "N/A")
     .replace("{orders}", product.orders || "N/A")
     .replace("{offers}", offersText);
+
+  // Replace specific offer links if they exist
+  product.offers.forEach((offer) => {
+    if (offer.key && offer.success) {
+      formatted = formatted.replace(`{${offer.key}}`, offer.link);
+    }
+  });
+
+  // Clean up any unused specific link placeholders
+  const specificLinkKeys = [
+    "{coin_link}", "{direct_link}", "{super_link}", "{big_save_link}",
+    "{limited_link}", "{potential_link}", "{bundle_direct_link}", "{bundle_page_link}"
+  ];
+  specificLinkKeys.forEach(key => {
+    formatted = formatted.replace(key, "");
+  });
+
+  return formatted;
 }

@@ -36,6 +36,14 @@ const AVAILABLE_KEYWORDS = [
   { key: "{discount}", description: "Discount percentage" },
   { key: "{storeName}", description: "Store name" },
   { key: "{offers}", description: "All affiliate links" },
+  { key: "{coin_link}", description: "Coin Page Offer link" },
+  { key: "{direct_link}", description: "Direct Product link" },
+  { key: "{super_link}", description: "Super Deals link" },
+  { key: "{big_save_link}", description: "Big Save Discount link" },
+  { key: "{limited_link}", description: "Limited Discount link" },
+  { key: "{potential_link}", description: "Potential Discount link" },
+  { key: "{bundle_direct_link}", description: "Bundle Direct link" },
+  { key: "{bundle_page_link}", description: "Bundle Deals Page link" },
 ];
 
 type TemplateType = "share" | "details" | "copyAll";
@@ -160,6 +168,14 @@ export default function MessageDesignScreen() {
       .replace("{originalPrice}", "$39.99 USD")
       .replace("{discount}", "50%")
       .replace("{storeName}", "Best Store Official")
+      .replace("{coin_link}", "https://aliexpress.com/coin-link")
+      .replace("{direct_link}", "https://aliexpress.com/direct-link")
+      .replace("{super_link}", "https://aliexpress.com/super-link")
+      .replace("{big_save_link}", "https://aliexpress.com/big-save-link")
+      .replace("{limited_link}", "https://aliexpress.com/limited-link")
+      .replace("{potential_link}", "https://aliexpress.com/potential-link")
+      .replace("{bundle_direct_link}", "https://aliexpress.com/bundle-direct-link")
+      .replace("{bundle_page_link}", "https://aliexpress.com/bundle-page-link")
       .replace(
         "{offers}",
         "Coin Page Offer:\nhttps://example.com/offer1\n\nDirect Link:\nhttps://example.com/offer2"

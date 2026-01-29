@@ -32,6 +32,23 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const formatBirthDate = (text: string) => {
+    const cleaned = text.replace(/[^0-9]/g, "");
+    let formatted = "";
+    
+    if (cleaned.length > 0) {
+      formatted = cleaned.substring(0, 4);
+    }
+    if (cleaned.length > 4) {
+      formatted += "-" + cleaned.substring(4, 6);
+    }
+    if (cleaned.length > 6) {
+      formatted += "-" + cleaned.substring(6, 8);
+    }
+    
+    return formatted;
+  };
+
   const handleRegister = async () => {
     setError("");
 
@@ -157,8 +174,7 @@ export default function RegisterScreen() {
               <ThemedText type="small" style={styles.label}>
                 الاسم
               </ThemedText>
-              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                <Feather name="user" size={20} color={theme.textSecondary} />
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
                   value={firstName}
@@ -174,8 +190,7 @@ export default function RegisterScreen() {
               <ThemedText type="small" style={styles.label}>
                 اللقب
               </ThemedText>
-              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                <Feather name="user" size={20} color={theme.textSecondary} />
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
                   value={lastName}
@@ -191,8 +206,7 @@ export default function RegisterScreen() {
               <ThemedText type="small" style={styles.label}>
                 البريد الإلكتروني
               </ThemedText>
-              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                <Feather name="mail" size={20} color={theme.textSecondary} />
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
                   value={email}
@@ -211,15 +225,15 @@ export default function RegisterScreen() {
               <ThemedText type="small" style={styles.label}>
                 تاريخ الميلاد
               </ThemedText>
-              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                <Feather name="calendar" size={20} color={theme.textSecondary} />
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
                   value={birthDate}
-                  onChangeText={setBirthDate}
+                  onChangeText={(text) => setBirthDate(formatBirthDate(text))}
                   placeholder="YYYY-MM-DD"
                   placeholderTextColor={theme.textSecondary}
-                  keyboardType="default"
+                  keyboardType="number-pad"
+                  maxLength={10}
                   testID="input-birth-date"
                 />
               </View>
@@ -229,8 +243,7 @@ export default function RegisterScreen() {
               <ThemedText type="small" style={styles.label}>
                 كلمة المرور
               </ThemedText>
-              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                <Feather name="lock" size={20} color={theme.textSecondary} />
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
                   value={password}
@@ -240,10 +253,10 @@ export default function RegisterScreen() {
                   secureTextEntry={!showPassword}
                   testID="input-password"
                 />
-                <Pressable onPress={() => setShowPassword(!showPassword)}>
+                <Pressable style={styles.eyeButton} onPress={() => setShowPassword(!showPassword)}>
                   <Feather
                     name={showPassword ? "eye-off" : "eye"}
-                    size={20}
+                    size={18}
                     color={theme.textSecondary}
                   />
                 </Pressable>
@@ -254,8 +267,7 @@ export default function RegisterScreen() {
               <ThemedText type="small" style={styles.label}>
                 تأكيد كلمة المرور
               </ThemedText>
-              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                <Feather name="lock" size={20} color={theme.textSecondary} />
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
                   value={confirmPassword}
@@ -265,10 +277,10 @@ export default function RegisterScreen() {
                   secureTextEntry={!showConfirmPassword}
                   testID="input-confirm-password"
                 />
-                <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <Pressable style={styles.eyeButton} onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                   <Feather
                     name={showConfirmPassword ? "eye-off" : "eye"}
-                    size={20}
+                    size={18}
                     color={theme.textSecondary}
                   />
                 </Pressable>
@@ -361,16 +373,18 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    height: 52,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     paddingHorizontal: Spacing.md,
-    gap: Spacing.sm,
   },
   input: {
     flex: 1,
+    height: 48,
     fontSize: 16,
     textAlign: "right",
+  },
+  eyeButton: {
+    padding: Spacing.sm,
   },
   registerButton: {
     height: 56,

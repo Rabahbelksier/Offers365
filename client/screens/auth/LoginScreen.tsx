@@ -108,8 +108,7 @@ export default function LoginScreen() {
               <ThemedText type="small" style={styles.label}>
                 البريد الإلكتروني
               </ThemedText>
-              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                <Feather name="mail" size={20} color={theme.textSecondary} />
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
                   value={email}
@@ -128,8 +127,7 @@ export default function LoginScreen() {
               <ThemedText type="small" style={styles.label}>
                 كلمة المرور
               </ThemedText>
-              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                <Feather name="lock" size={20} color={theme.textSecondary} />
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
                   value={password}
@@ -139,10 +137,10 @@ export default function LoginScreen() {
                   secureTextEntry={!showPassword}
                   testID="input-password"
                 />
-                <Pressable onPress={() => setShowPassword(!showPassword)}>
+                <Pressable style={styles.eyeButton} onPress={() => setShowPassword(!showPassword)}>
                   <Feather
                     name={showPassword ? "eye-off" : "eye"}
-                    size={20}
+                    size={18}
                     color={theme.textSecondary}
                   />
                 </Pressable>
@@ -235,16 +233,18 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    height: 52,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     paddingHorizontal: Spacing.md,
-    gap: Spacing.sm,
   },
   input: {
     flex: 1,
+    height: 48,
     fontSize: 16,
     textAlign: "right",
+  },
+  eyeButton: {
+    padding: Spacing.sm,
   },
   loginButton: {
     height: 56,

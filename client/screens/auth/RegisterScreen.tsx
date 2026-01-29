@@ -153,37 +153,37 @@ export default function RegisterScreen() {
               </View>
             ) : null}
 
-            <View style={styles.row}>
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <ThemedText type="small" style={styles.label}>
-                  اللقب
-                </ThemedText>
-                <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                  <TextInput
-                    style={[styles.input, { color: theme.text }]}
-                    value={lastName}
-                    onChangeText={setLastName}
-                    placeholder="اللقب"
-                    placeholderTextColor={theme.textSecondary}
-                    testID="input-last-name"
-                  />
-                </View>
+            <View style={styles.inputGroup}>
+              <ThemedText type="small" style={styles.label}>
+                الاسم
+              </ThemedText>
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
+                <Feather name="user" size={20} color={theme.textSecondary} />
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  placeholder="الاسم"
+                  placeholderTextColor={theme.textSecondary}
+                  testID="input-first-name"
+                />
               </View>
+            </View>
 
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <ThemedText type="small" style={styles.label}>
-                  الاسم
-                </ThemedText>
-                <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                  <TextInput
-                    style={[styles.input, { color: theme.text }]}
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    placeholder="الاسم"
-                    placeholderTextColor={theme.textSecondary}
-                    testID="input-first-name"
-                  />
-                </View>
+            <View style={styles.inputGroup}>
+              <ThemedText type="small" style={styles.label}>
+                اللقب
+              </ThemedText>
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
+                <Feather name="user" size={20} color={theme.textSecondary} />
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  value={lastName}
+                  onChangeText={setLastName}
+                  placeholder="اللقب"
+                  placeholderTextColor={theme.textSecondary}
+                  testID="input-last-name"
+                />
               </View>
             </View>
 
@@ -350,10 +350,6 @@ const styles = StyleSheet.create({
     color: AppColors.error,
     flex: 1,
     textAlign: "right",
-  },
-  row: {
-    flexDirection: "row",
-    gap: Spacing.md,
   },
   inputGroup: {
     gap: Spacing.xs,

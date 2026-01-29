@@ -137,6 +137,19 @@ export default function HomeScreen() {
     showToast("History cleared", "success");
   };
 
+  const handlePaste = async () => {
+    const text = await Clipboard.getStringAsync();
+    if (text) {
+      setLinkInput(text);
+      if (Platform.OS !== "web") {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      showToast("Link pasted from clipboard", "info");
+    } else {
+      showToast("Clipboard is empty", "error");
+    }
+  };
+
   const handleProductPress = (product: ProductItem) => {
     navigation.navigate("ProductDetails", { product });
   };
@@ -279,6 +292,19 @@ export default function HomeScreen() {
                 textAlignVertical="top"
                 testID="input-link"
               />
+              <Pressable
+                style={({ pressed }) => [
+                  styles.pasteButton,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={handlePaste}
+                testID="button-paste-link"
+              >
+                <Feather name="clipboard" size={20} color={AppColors.primary} />
+                <ThemedText type="small" style={{ color: AppColors.primary, fontWeight: '600' }}>
+                  Paste
+                </ThemedText>
+              </Pressable>
             </View>
 
             <Pressable
@@ -368,6 +394,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     minHeight: 70,
+  },
+  pasteButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingLeft: Spacing.sm,
+    gap: 4,
   },
   getOffersButton: {
     flexDirection: "row",

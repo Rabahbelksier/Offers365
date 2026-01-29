@@ -157,8 +157,19 @@ export default function MessageDesignScreen() {
     showToast("Template reset to default", "info");
   };
 
-  const insertKeyword = (keyword: string) => {
+  const insertKeyword = async (keyword: string) => {
     setCurrentTemplate(getCurrentTemplate() + keyword);
+    
+    // Feature request: tap-to-copy for keywords
+    try {
+      await Clipboard.setStringAsync(keyword);
+      if (Platform.OS !== "web") {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      showToast(`${keyword} copied & added to editor`, "success");
+    } catch (error) {
+      // Just fall back to inserting if copy fails
+    }
   };
 
   const getPreview = () => {

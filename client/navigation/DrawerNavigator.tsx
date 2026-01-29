@@ -15,6 +15,7 @@ import AppGuideScreen from "@/screens/AppGuideScreen";
 import { ThemedText } from "@/components/ThemedText";
 import { SocialLinks } from "@/components/SocialLinks";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/contexts/AuthContext";
 import { AppColors, Spacing, BorderRadius } from "@/constants/theme";
 
 export type DrawerParamList = {
@@ -67,6 +68,7 @@ function DrawerItem({ label, icon, isActive, onPress }: DrawerItemProps) {
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { theme } = useTheme();
+  const { logout } = useAuth();
   const insets = useSafeAreaInsets();
   const { state, navigation } = props;
 
@@ -76,6 +78,14 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
     { name: "MessageDesign", label: "Message Design", icon: "edit-3" },
     { name: "AppGuide", label: "App Guide", icon: "book-open" },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   return (
     <DrawerContentScrollView
@@ -111,6 +121,22 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 
       <View style={styles.footer}>
         <SocialLinks />
+        
+        <Pressable
+          style={({ pressed }) => [
+            styles.logoutButton,
+            { borderColor: theme.border },
+            pressed && styles.logoutButtonPressed,
+          ]}
+          onPress={handleLogout}
+          testID="button-logout"
+        >
+          <Feather name="log-out" size={20} color={AppColors.error} />
+          <ThemedText type="body" style={styles.logoutText}>
+            تسجيل الخروج
+          </ThemedText>
+        </Pressable>
+
         <ThemedText
           type="caption"
           style={[styles.version, { color: theme.textSecondary }]}
@@ -248,6 +274,24 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "rgba(0,0,0,0.1)",
     marginTop: Spacing.lg,
+  },
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    marginVertical: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  logoutButtonPressed: {
+    opacity: 0.7,
+  },
+  logoutText: {
+    color: AppColors.error,
+    fontWeight: "500",
   },
   version: {
     textAlign: "center",

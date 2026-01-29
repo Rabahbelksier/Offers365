@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -25,22 +24,13 @@ export default function RegisterScreen() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [birthDate, setBirthDate] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("ar-EG", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
 
   const handleRegister = async () => {
     setError("");
@@ -66,8 +56,14 @@ export default function RegisterScreen() {
       return;
     }
 
-    if (!birthDate) {
-      setError("يرجى تحديد تاريخ الميلاد");
+    if (!birthDate.trim()) {
+      setError("يرجى إدخال تاريخ الميلاد");
+      return;
+    }
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(birthDate.trim())) {
+      setError("صيغة التاريخ غير صحيحة (YYYY-MM-DD)");
       return;
     }
 
@@ -99,7 +95,7 @@ export default function RegisterScreen() {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim().toLowerCase(),
-        birthDate: birthDate.toISOString().split("T")[0],
+        birthDate: birthDate.trim(),
         password: password,
       });
 
@@ -215,35 +211,19 @@ export default function RegisterScreen() {
               <ThemedText type="small" style={styles.label}>
                 تاريخ الميلاد
               </ThemedText>
-              <Pressable
-                style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}
-                onPress={() => setShowDatePicker(true)}
-                testID="input-birth-date"
-              >
+              <View style={[styles.inputContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
                 <Feather name="calendar" size={20} color={theme.textSecondary} />
-                <ThemedText
-                  type="body"
-                  style={[styles.dateText, { color: birthDate ? theme.text : theme.textSecondary }]}
-                >
-                  {birthDate ? formatDate(birthDate) : "اختر تاريخ الميلاد"}
-                </ThemedText>
-              </Pressable>
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  value={birthDate}
+                  onChangeText={setBirthDate}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={theme.textSecondary}
+                  keyboardType="default"
+                  testID="input-birth-date"
+                />
+              </View>
             </View>
-
-            {showDatePicker ? (
-              <DateTimePicker
-                value={birthDate || new Date(2000, 0, 1)}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={(event, date) => {
-                  setShowDatePicker(Platform.OS === "ios");
-                  if (date) {
-                    setBirthDate(date);
-                  }
-                }}
-                maximumDate={new Date()}
-              />
-            ) : null}
 
             <View style={styles.inputGroup}>
               <ThemedText type="small" style={styles.label}>
@@ -394,10 +374,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    textAlign: "right",
-  },
-  dateText: {
-    flex: 1,
     textAlign: "right",
   },
   registerButton: {

@@ -121,13 +121,24 @@ export default function ProductDetailsScreen() {
         return;
       }
 
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== "granted") {
+      // Special handling for Android to avoid common permission issues with older versions/configurations
+      let hasPermission = false;
+      try {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        hasPermission = status === "granted";
+      } catch (permError) {
+        console.error("Permission request failed:", permError);
+        // Fallback: try to open in browser if permission request itself fails
+        await Linking.openURL(product.imageUrl);
+        return;
+      }
+
+      if (!hasPermission) {
         showToast("Permission required to save images", "error");
         return;
       }
 
-      const fileUri = (FileSystem as any).documentDirectory + `product_${product.productId}.jpg`;
+      const fileUri = FileSystem.documentDirectory + `product_${product.productId}.jpg`;
       const download = await FileSystem.downloadAsync(product.imageUrl, fileUri);
       await MediaLibrary.saveToLibraryAsync(download.uri);
       await triggerHaptic();

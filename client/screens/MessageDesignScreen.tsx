@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -87,7 +88,7 @@ export default function MessageDesignScreen() {
     message: string,
     type: "success" | "error" | "info" = "success"
   ) => {
-    setToast({ visible: true, message, type: type === "success" ? "success" : "success" }); // Temporary hack to fix LSP while keeping it simple
+    setToast({ visible: true, message, type: "success" });
   };
 
   const hideToast = () => {

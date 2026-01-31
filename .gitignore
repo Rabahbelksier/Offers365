@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules/
+.npm/
 
 # Expo
 .expo/
@@ -41,3 +42,18 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Build files
+dist/
+server_dist/
+static-build/
+
+# Logs
+*.log
+npm-debug.log*
+

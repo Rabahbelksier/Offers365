@@ -346,13 +346,6 @@ async function generateAffiliateLink(
 
     params.sign = generateApiSignature(params, appSecret);
 
-    const response = await fetch(ALIEXPRESS_API_URL, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
     const queryString = new URLSearchParams(params).toString();
     const apiResponse = await fetch(`${ALIEXPRESS_API_URL}?${queryString}`);
     const data = await apiResponse.json();

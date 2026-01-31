@@ -3,7 +3,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const STORAGE_KEYS = {
   RECENT_PRODUCTS: "offers365_recent_products",
   SETTINGS: "offers365_settings",
-  MESSAGE_TEMPLATE: "offers365_message_template",
   SHARE_TEMPLATE: "offers365_share_template",
   DETAILS_TEMPLATE: "offers365_details_template",
   COPY_ALL_TEMPLATE: "offers365_copy_all_template",
@@ -50,17 +49,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   appSecret: "",
   trackingId: "",
 };
-
-export const DEFAULT_MESSAGE_TEMPLATE = `{title}
-
-Current Price: {price}
-Original Price: {originalPrice}
-Discount: {discount}
-
-Store: {storeName}
-
-Offers:
-{offers}`;
 
 export const DEFAULT_SHARE_TEMPLATE = `{title}
 
@@ -148,23 +136,6 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
     await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
   } catch (error) {
     console.error("Failed to save settings:", error);
-  }
-}
-
-export async function getMessageTemplate(): Promise<string> {
-  try {
-    const data = await AsyncStorage.getItem(STORAGE_KEYS.MESSAGE_TEMPLATE);
-    return data || DEFAULT_MESSAGE_TEMPLATE;
-  } catch {
-    return DEFAULT_MESSAGE_TEMPLATE;
-  }
-}
-
-export async function saveMessageTemplate(template: string): Promise<void> {
-  try {
-    await AsyncStorage.setItem(STORAGE_KEYS.MESSAGE_TEMPLATE, template);
-  } catch (error) {
-    console.error("Failed to save template:", error);
   }
 }
 

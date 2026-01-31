@@ -21,7 +21,7 @@ import { getSettings, saveSettings, AppSettings, DEFAULT_SETTINGS } from "@/lib/
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
 
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [showSecrets, setShowSecrets] = useState({
